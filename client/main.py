@@ -1,3 +1,4 @@
+
 # Client Application
 from kivy.config import Config
 Config.set('input', 'mouse', 'mouse,disable_multitouch')
@@ -50,10 +51,6 @@ with open("client/settings.json","r") as f:
 
 Window.size = (1080/3,2408/4)
 
-
-
-
-
 class LoginPage(Screen):
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
@@ -91,7 +88,9 @@ class LoginPage(Screen):
             text = "SKIP",
             pos_hint={'center_x':0.65,'center_y':0.35}
         )
+
         self.loginbutton.bind(on_release=self.switchScreen)
+
         self.add_widget(self.app_title)
         self.add_widget(self.user_input)
         self.add_widget(self.pass_input)
@@ -158,6 +157,7 @@ class Map(Screen):
         self.boxlayout.add_widget(self.gridlayout)
         self.add_widget(self.boxlayout)
 
+
 class MyApp(App):
     def build(self):
         self.theme_cls.primary_palette = "Blue"  # Change the primary color palette
@@ -169,6 +169,7 @@ class MyApp(App):
         screen_manage.add_widget(login)
         screen_manage.add_widget(map)
         screen_manage.add_widget(emergency)
+        screen_manage.add_widget(login)
         return screen_manage
 
 
