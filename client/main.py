@@ -1,5 +1,6 @@
 # Client Application
-
+from kivy.config import Config
+Config.set('input', 'mouse', 'mouse,disable_multitouch')
 from kivymd.app import MDApp as App
 from kivymd.uix.screen import Screen
 from kivymd.uix.screenmanager import MDScreenManager as ScreenManager
@@ -10,12 +11,37 @@ from kivymd.uix.textfield import MDTextField as TextInput
 from kivy.uix.label import Label
 from kivy.graphics import Rectangle,Color
 from kivymd.theming import ThemeManager
+from kivymd.icon_definitions import md_icons
+from kivy.uix.button import Button
+from kivy.uix.image import Image
+from kivymd.uix.widget import MDWidget
 from kivy_garden.mapview import MapView,MapMarkerPopup,MapMarker
-from kivymd.uix.button import MDRectangleFlatButton
+from kivymd.uix.button import MDRectangleFlatButton,MDFlatButton,MDIconButton,MDFloatingActionButton
+from kivymd.uix.navigationdrawer import MDNavigationDrawer
 from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.toolbar import toolbar
+from kivymd.uix.floatlayout import MDFloatLayout
 from kivymd.uix.transition import MDFadeSlideTransition,MDSwapTransition
 from kivy.lang import Builder
 import json
+import websockets
+import asyncio
+import time
+# The main function that will handle connection and communication
+# with the server
+# async def listen():
+#     url = "ws://10.60.210.126:5000/client/ws"
+#     # Connect to the server
+#     async with websockets.connect(url) as ws:
+#         time.sleep(10)
+#         await ws.send(json.dumps({"event":"confirm","data":{"location":[12.33637695667677,76.6193388134931]}}))
+#         # Stay alive forever, listening to incoming msgs
+#         while True:
+#             msg = await ws.recv()
+#             print(msg)
+
+# Start the connection
+# asyncio.get_event_loop().run_until_complete(listen())
 
 
 with open("client/settings.json","r") as f:
@@ -23,6 +49,9 @@ with open("client/settings.json","r") as f:
     font_path,title_font = data["font_path"],data["title_font"]
 
 Window.size = (1080/3,2408/4)
+
+
+
 
 
 class LoginPage(Screen):
@@ -77,16 +106,57 @@ class LoginPage(Screen):
             self.manager.transition = MDSwapTransition(
                 duration=0.5
             )   
-            self.manager.current = "map"
+            self.manager.current = "emerg"
+
+
+class Emergency(Screen):
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+        self.layout = MDBoxLayout(orientation='vertical')
+        self.gridlayout = MDGridLayout(rows=4)
+        self.emergencyimage = Button(
+            background_normal="client/assets/icons/emergencyamb.png",
+            size_hint=(1,1)
+            )
+        self.options_button = MDFlatButton(
+            text="Other Options",
+            pos_hint={'center_x':0.5,'center_y':0},
+            size_hint=(1,0.5)
+        )
+        self.emergencyimage.bind(on_press=self.switchScreen)
+        self.gridlayout.add_widget(self.emergencyimage)
+        self.gridlayout.add_widget(self.options_button)
+        self.layout.add_widget(self.gridlayout)
+        self.add_widget(self.layout)
+
+    def switchScreen(self,*args):
+        self.manager.transition = MDSwapTransition(
+                duration=0.5
+            )   
+        self.manager.current = "map"
+        
 
 class Map(Screen):
+    lat = 12.33637695667677
+    lon = 76.6193388134931
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
         #Do Map Stuff
-        map = MapView(zoom=15,size=(Window.width,Window.height))
-        map.center_on(12.33637695667677,76.6193388134931)
-        self.add_widget(map)
-
+        self.map = MapView(zoom=17,size=(Window.width,Window.height), size_hint=(1,.7))
+        self.map.center_on(self.lat,self.lon)
+        self.pin = MapMarkerPopup(lat=self.lat,lon=self.lon)
+        self.map.add_widget(self.pin)
+        self.boxlayout = MDBoxLayout(orientation='vertical')
+        self.gridlayout = MDGridLayout(rows=4,pos_hint={'center_y':0.5,'center_x':0.5}, size_hint=(1,.3))
+        self.emergencybutton = MDIconButton(
+            pos_hint={'center_x':0.5,'center_y':0.5},
+            size_hint=(.5,.5),
+            icon="phone-dial"
+        )
+        self.gridlayout.add_widget(self.emergencybutton)
+        self.boxlayout.add_widget(self.map)
+        self.boxlayout.add_widget(self.gridlayout)
+        self.add_widget(self.boxlayout)
 
 class MyApp(App):
     def build(self):
@@ -94,8 +164,11 @@ class MyApp(App):
         screen_manage = ScreenManager()
         login = LoginPage(name="login")
         map = Map(name="map")
+        emergency = Emergency(name="emerg")
+        self.boxlayout = MDBoxLayout(orientation="vertical")
         screen_manage.add_widget(login)
         screen_manage.add_widget(map)
+        screen_manage.add_widget(emergency)
         return screen_manage
 
 
