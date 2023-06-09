@@ -1,0 +1,4 @@
+FROM python:3.10-alpine
+WORKDIR /flask
+COPY . /flask
+CMD python main.py
