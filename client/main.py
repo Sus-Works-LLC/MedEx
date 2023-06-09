@@ -2,7 +2,7 @@
 
 from kivymd.app import MDApp as App
 from kivymd.uix.screen import Screen
-from kivymd.uix.screenmanager import ScreenManager
+from kivymd.uix.screenmanager import MDScreenManager as ScreenManager
 from kivy.core.window import Window
 from kivy.config import Config
 from kivymd.uix.gridlayout import MDGridLayout
@@ -10,8 +10,10 @@ from kivymd.uix.textfield import MDTextField as TextInput
 from kivy.uix.label import Label
 from kivy.graphics import Rectangle,Color
 from kivymd.theming import ThemeManager
+from kivy_garden.mapview import MapView,MapMarkerPopup,MapMarker
 from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.transition import MDFadeSlideTransition,MDSwapTransition
 from kivy.lang import Builder
 import json
 
@@ -60,6 +62,7 @@ class LoginPage(Screen):
             text = "SKIP",
             pos_hint={'center_x':0.65,'center_y':0.35}
         )
+        self.loginbutton.bind(on_release=self.switchScreen)
         self.add_widget(self.app_title)
         self.add_widget(self.user_input)
         self.add_widget(self.pass_input)
@@ -70,12 +73,29 @@ class LoginPage(Screen):
         self.rect.pos = self.pos 
         self.rect.size = self.size
 
+    def switchScreen(self,*args):
+            self.manager.transition = MDSwapTransition(
+                duration=0.5
+            )   
+            self.manager.current = "map"
+
+class Map(Screen):
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+        #Do Map Stuff
+        map = MapView(zoom=15,size=(Window.width,Window.height))
+        map.center_on(12.33637695667677,76.6193388134931)
+        self.add_widget(map)
+
+
 class MyApp(App):
     def build(self):
         self.theme_cls.primary_palette = "Blue"  # Change the primary color palette
         screen_manage = ScreenManager()
         login = LoginPage(name="login")
+        map = Map(name="map")
         screen_manage.add_widget(login)
+        screen_manage.add_widget(map)
         return screen_manage
 
 
